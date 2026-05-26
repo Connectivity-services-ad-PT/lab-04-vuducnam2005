@@ -34,11 +34,16 @@ jobs:
             --env-file .env.example \
             fit4110/access-gate:lab04
 
+      - name: Show running container
+        run: |
+          docker ps
+          docker logs fit4110-gate-lab04 || true
+
       - name: Wait for service health
-        run: npx wait-on http://localhost:8000/health --timeout 30000
+        run: curl --retry 30 --retry-delay 2 --retry-connrefused --fail http://127.0.0.1:8000/health
 
       - name: Run Newman against Docker container
-        run: npm run test:local
+        run: npm run test:local -- --env-var baseUrl=http://127.0.0.1:8000
 
       - name: Show container logs on failure
         if: failure()
