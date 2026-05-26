@@ -40,7 +40,17 @@ jobs:
           docker logs fit4110-gate-lab04 || true
 
       - name: Wait for service health
-        run: curl --retry 30 --retry-delay 2 --retry-connrefused --fail http://127.0.0.1:8000/health
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8000/health; then
+              exit 0
+            fi
+            docker ps
+            docker logs --tail 50 fit4110-gate-lab04 || true
+            sleep 2
+          done
+          docker logs fit4110-gate-lab04 || true
+          exit 1
 
       - name: Run Newman against Docker container
         run: npm run test:local -- --env-var baseUrl=http://127.0.0.1:8000
