@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="FIT4110 Lab04 Gate-Core-Analytics Docker Verification" tests="10" time="0.115">
+  <testsuite name="Health returns ok without auth" id="fb2f4b43-53f9-4e50-91cb-f6bd6c0c5be4" timestamp="2026-05-26T10:20:06.796Z" tests="2" failures="0" errors="0" time="0.045">
+    <testcase name="status is 200" time="0.045" classname="HealthReturnsOkWithoutAuth"/>
+    <testcase name="health schema is valid" time="0.045" classname="HealthReturnsOkWithoutAuth"/>
+  </testsuite>
+  <testsuite name="Access event requires bearer token" id="008cf78f-c6fc-4f02-be0f-caec1372e382" timestamp="2026-05-26T10:20:06.796Z" tests="2" failures="0" errors="0" time="0.004">
+    <testcase name="status is 401" time="0.004" classname="AccessEventRequiresBearerToken"/>
+    <testcase name="problem details returned" time="0.004" classname="AccessEventRequiresBearerToken"/>
+  </testsuite>
+  <testsuite name="Gate sends valid access event" id="6b2f9431-6a95-4a2c-9f41-6b017558c0f1" timestamp="2026-05-26T10:20:06.796Z" tests="1" failures="0" errors="0" time="0.013">
+    <testcase name="status is 201" time="0.013" classname="GateSendsValidAccessEvent"/>
+  </testsuite>
+  <testsuite name="Duplicate access event returns conflict" id="c30079c2-ca2f-4313-b7b5-2469a7803749" timestamp="2026-05-26T10:20:06.796Z" tests="2" failures="0" errors="0" time="0.009">
+    <testcase name="status is 409" time="0.009" classname="DuplicateAccessEventReturnsConflict"/>
+    <testcase name="conflict uses problem details" time="0.009" classname="DuplicateAccessEventReturnsConflict"/>
+  </testsuite>
+  <testsuite name="Invalid access direction returns validation problem" id="2c54344c-2b6a-4aa4-a6fe-5565fd7d5d9a" timestamp="2026-05-26T10:20:06.796Z" tests="2" failures="0" errors="0" time="0.006">
+    <testcase name="status is 422" time="0.006" classname="InvalidAccessDirectionReturnsValidationProblem"/>
+    <testcase name="validation uses problem details" time="0.006" classname="InvalidAccessDirectionReturnsValidationProblem"/>
+  </testsuite>
+  <testsuite name="Core sends business decision event" id="edec09e9-831d-432c-8a4d-09614d77dd69" timestamp="2026-05-26T10:20:06.796Z" tests="1" failures="0" errors="0" time="0.011">
+    <testcase name="status is 201" time="0.011" classname="CoreSendsBusinessDecisionEvent"/>
+  </testsuite>
+  <testsuite name="Analytics events include Gate and Core results" id="bf2d8593-b60a-470e-8f69-50b9293197f0" timestamp="2026-05-26T10:20:06.796Z" tests="2" failures="0" errors="0" time="0.004">
+    <testcase name="status is 200" time="0.004" classname="AnalyticsEventsIncludeGateAndCoreResults"/>
+    <testcase name="page contains analytics items" time="0.004" classname="AnalyticsEventsIncludeGateAndCoreResults"/>
+  </testsuite>
+  <testsuite name="Gate KPI is available" id="d59b1f8f-92f9-4b65-b4dc-2804d5460421" timestamp="2026-05-26T10:20:06.796Z" tests="2" failures="0" errors="0" time="0.004">
+    <testcase name="status is 200" time="0.004" classname="GateKpiIsAvailable"/>
+    <testcase name="access deny rate KPI exists" time="0.004" classname="GateKpiIsAvailable"/>
+  </testsuite>
+  <testsuite name="Dashboard exposes integration counters" id="1123f37d-e89f-441b-b827-2da19f2eaa15" timestamp="2026-05-26T10:20:06.796Z" tests="2" failures="0" errors="0" time="0.006">
+    <testcase name="status is 200" time="0.006" classname="DashboardExposesIntegrationCounters"/>
+    <testcase name="dashboard has access counter" time="0.006" classname="DashboardExposesIntegrationCounters"/>
+  </testsuite>
+  <testsuite name="Unknown analytics report returns not found" id="1e27ffc5-36cb-4ce1-badc-c0256b13bc27" timestamp="2026-05-26T10:20:06.796Z" tests="2" failures="0" errors="0" time="0.013">
+    <testcase name="status is 404" time="0.013" classname="UnknownAnalyticsReportReturnsNotFound"/>
+    <testcase name="not found uses problem details" time="0.013" classname="UnknownAnalyticsReportReturnsNotFound"/>
+  </testsuite>
+</testsuites>

@@ -28,8 +28,8 @@ Container = tiến trình đang chạy từ image
 Ví dụ:
 
 ```bash
-docker build -t fit4110/iot-ingestion:lab04 .
-docker run -p 8000:8000 fit4110/iot-ingestion:lab04
+docker build -t fit4110/access-gate:lab04 .
+docker run -p 8000:8000 fit4110/access-gate:lab04
 ```
 
 ---
@@ -68,7 +68,7 @@ Kiểm tra:
 
 ```bash
 docker ps
-docker inspect fit4110-iot-lab04
+docker inspect fit4110-gate-lab04
 ```
 
 ---

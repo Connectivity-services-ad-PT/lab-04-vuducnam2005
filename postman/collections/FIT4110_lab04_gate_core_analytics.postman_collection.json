@@ -1,0 +1,364 @@
+{
+  "info": {
+    "name": "FIT4110 Lab04 Gate-Core-Analytics Docker Verification",
+    "description": "Newman checks for the shared Smart Campus Analytics contract. The Gate group is verified through /analytics/access-events and the Core group through /analytics/business-events.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health returns ok without auth",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('health schema is valid', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.eql('ok');",
+              "  pm.expect(body.service).to.be.a('string');",
+              "  pm.expect(body.time).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Access event requires bearer token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventType\": \"access.log.created\",\n  \"gateId\": \"GATE-01\",\n  \"direction\": \"IN\",\n  \"cardIdHash\": \"hash-card-001\",\n  \"decision\": \"ALLOW\",\n  \"timestamp\": \"{{$isoTimestamp}}\",\n  \"correlationId\": \"11111111-1111-4111-8111-111111111111\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/analytics/access-events",
+          "host": ["{{baseUrl}}"],
+          "path": ["analytics", "access-events"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 401', function () { pm.response.to.have.status(401); });",
+              "pm.test('problem details returned', function () {",
+              "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.eql(401);",
+              "  pm.expect(body.title).to.eql('Unauthorized');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gate sends valid access event",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventType\": \"access.log.created\",\n  \"gateId\": \"GATE-01\",\n  \"direction\": \"IN\",\n  \"cardIdHash\": \"hash-card-001\",\n  \"decision\": \"ALLOW\",\n  \"timestamp\": \"{{$isoTimestamp}}\",\n  \"correlationId\": \"22222222-2222-4222-8222-222222222222\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/analytics/access-events",
+          "host": ["{{baseUrl}}"],
+          "path": ["analytics", "access-events"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Duplicate access event returns conflict",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventType\": \"access.log.created\",\n  \"gateId\": \"GATE-01\",\n  \"direction\": \"IN\",\n  \"cardIdHash\": \"hash-card-001\",\n  \"decision\": \"ALLOW\",\n  \"timestamp\": \"{{$isoTimestamp}}\",\n  \"correlationId\": \"22222222-2222-4222-8222-222222222222\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/analytics/access-events",
+          "host": ["{{baseUrl}}"],
+          "path": ["analytics", "access-events"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 409', function () { pm.response.to.have.status(409); });",
+              "pm.test('conflict uses problem details', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.eql(409);",
+              "  pm.expect(body.title).to.eql('Conflict');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid access direction returns validation problem",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventType\": \"access.denied\",\n  \"gateId\": \"GATE-02\",\n  \"direction\": \"SIDEWAYS\",\n  \"cardIdHash\": \"hash-card-002\",\n  \"decision\": \"DENY\",\n  \"timestamp\": \"{{$isoTimestamp}}\",\n  \"correlationId\": \"33333333-3333-4333-8333-333333333333\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/analytics/access-events",
+          "host": ["{{baseUrl}}"],
+          "path": ["analytics", "access-events"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 422', function () { pm.response.to.have.status(422); });",
+              "pm.test('validation uses problem details', function () {",
+              "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.eql(422);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core sends business decision event",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventType\": \"policy.decision.created\",\n  \"sourceModule\": \"policy-engine\",\n  \"decisionId\": \"44444444-4444-4444-8444-444444444444\",\n  \"policyId\": \"POLICY-GATE-01\",\n  \"subjectId\": \"hash-card-001\",\n  \"result\": \"ALLOW\",\n  \"severity\": \"LOW\",\n  \"riskScore\": 12,\n  \"analyticsRequired\": true,\n  \"notificationRequired\": false,\n  \"reason\": \"Known card during allowed time window\",\n  \"timestamp\": \"{{$isoTimestamp}}\",\n  \"correlationId\": \"55555555-5555-4555-8555-555555555555\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/analytics/business-events",
+          "host": ["{{baseUrl}}"],
+          "path": ["analytics", "business-events"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics events include Gate and Core results",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/analytics/events",
+          "host": ["{{baseUrl}}"],
+          "path": ["analytics", "events"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('page contains analytics items', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.items).to.be.an('array');",
+              "  pm.expect(body.total).to.be.at.least(2);",
+              "  pm.expect(body.items.map(item => item.sourceService)).to.include('access-gate');",
+              "  pm.expect(body.items.map(item => item.sourceService)).to.include('core-business');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gate KPI is available",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/analytics/kpi",
+          "host": ["{{baseUrl}}"],
+          "path": ["analytics", "kpi"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('access deny rate KPI exists', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.be.an('array');",
+              "  pm.expect(body[0].metricName).to.eql('access-deny-rate');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard exposes integration counters",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/analytics/dashboard",
+          "host": ["{{baseUrl}}"],
+          "path": ["analytics", "dashboard"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('dashboard has access counter', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.be.an('array');",
+              "  pm.expect(body.map(item => item.metricName)).to.include('access-events');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unknown analytics report returns not found",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/analytics/report/66666666-6666-4666-8666-666666666666",
+          "host": ["{{baseUrl}}"],
+          "path": ["analytics", "report", "66666666-6666-4666-8666-666666666666"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 404', function () { pm.response.to.have.status(404); });",
+              "pm.test('not found uses problem details', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.eql(404);",
+              "  pm.expect(body.title).to.eql('Not Found');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}
